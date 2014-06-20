@@ -16,6 +16,7 @@ class Initializer(object):
 		self.mark = mark
 		self.position = 0
 		self.full_scan = 0
+		self.now = datetime.now() 
 		try:
 		#read last_state_mark
 			markfile = open(self.mark, "r")
@@ -33,7 +34,6 @@ class Initializer(object):
 			#print "can't find current time in log"
 			sys.exit(1)
 		self.full_scan = 1
-		self.now = datetime.now() 
 		try:
 			logfile = open(self.log, "r")
 		except:
