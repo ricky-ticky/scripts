@@ -30,6 +30,7 @@ class Initializer(object):
 		return self.avg
 	
 	def search_right_place(self):
+		"""Seaching for actual place in log file"""
 		if self.full_scan:
 			#print "can't find current time in log"
 			sys.exit(1)
@@ -57,6 +58,7 @@ class Initializer(object):
 			sys.exit(1)
 	
 	def grab_time(self, line):
+		"""distinguish timestamp from log line"""
 		try:
 			stamp = line.split()[4][1:]
 			timestamp = datetime.strptime(stamp, "%d/%b/%Y:%H:%M:%S")
@@ -65,6 +67,7 @@ class Initializer(object):
 		return timestamp
 	
 	def check_if_line_has_same_minute(self, line):
+		"""Checks that log line have timestamp not less than delta"""
 		line_timestamp = self.grab_time(line)
 		delta = self.now - line_timestamp
 		if delta.seconds <= 60:
@@ -73,6 +76,7 @@ class Initializer(object):
 			return False
 	
 	def get_log_lines(self):
+		"""Finding out exactly what lines of log should we parse"""
 		#open log file
 		try:
 			logfile = open(self.log, "r")
@@ -92,7 +96,7 @@ class Initializer(object):
 				self.get_log_lines()
 
 	def parse(self, lines):
-		"""return average response time as int or False"""
+		"""Returns average response time as float or False"""
 		regex = re.compile(r".* \[.*\] \".*\" (?P<http_code>\d*) \d* \".*\" \".*\" \[ [0-9\.]*:\d\d (?P<backend_resp_time>[0-9.]*) \] .* \".*\" cache:(?P<cache_hit>(-|HIT)) .*")
 		sum_resp_time = 0.0
 		mutch_counter = 0
@@ -111,6 +115,7 @@ class Initializer(object):
 			return False
 	
 	def save_position(self):
+		"""Seves current position of logfile in markfile"""
 		try:
 			markfile = open(mark, "w")
 			pickle.dump(self.position, markfile)
