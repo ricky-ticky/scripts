@@ -17,6 +17,11 @@ class Initializer(object):
 		self.position = 0
 		self.full_scan = 0
 		self.now = datetime.now() 
+		
+	def __float__(self):
+		return self.avg
+	
+	def run(self):
 		try:
 		#read last_state_mark
 			markfile = open(self.mark, "r")
@@ -26,8 +31,6 @@ class Initializer(object):
 			self.search_right_place()
 		self.avg = self.get_log_lines()
 		self.save_position()
-	def __float__(self):
-		return self.avg
 	
 	def search_right_place(self):
 		"""Seaching for actual place in log file"""
@@ -123,7 +126,9 @@ class Initializer(object):
 		except:
 			print "can't write mark file"
 			pass
-		
-chewy = Initializer(log, mark)
-print chewy.avg
+
+if __name__=="__main__":
+	chewy = Initializer(log, mark)
+	chewy.run()
+	print chewy.avg
 
