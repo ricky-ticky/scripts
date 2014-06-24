@@ -7,8 +7,8 @@ import sys
 import os
 
 #config
-log = "/var/log/nginx/invitro.ru.access.log"
-#log = "/tmp/invitro.ru.access.log"
+#log = "/var/log/nginx/invitro.ru.access.log"
+log = "/tmp/invitro.ru.access.log"
 mark = "/var/tmp/log_mark"
 
 
@@ -29,9 +29,12 @@ class Initializer(object):
 			markfile = open(self.mark, "r")
 			self.position = pickle.load(markfile)
 		except:
-			#print "No markfile fount. Searching right place by timestamp"
-			self.search_right_place()
-		self.avg = self.get_log_lines()
+			#print "No markfile fount. Go to the end of file"
+			#self.search_right_place()
+			self.go_to_the_end()
+			self.avg = -1
+		#self.avg = self.get_log_lines()
+		self.get_log_lines()
 		self.save_position()
 	
 	def search_right_place(self):
@@ -66,7 +69,8 @@ class Initializer(object):
 		logfile = open(self.log,"r")
 		logfile.seek(-1,os.SEEK_END)
 		self.position = logfile.tell()
-		pass
+		logfile.close()
+		self.save_position()
 		
 	def search_from_markpoint(self):
 		"""Search for actual place in logfile from markpoint"""
@@ -84,6 +88,8 @@ class Initializer(object):
 	def check_if_line_has_same_minute(self, line):
 		"""Checks that log line have timestamp not less than delta"""
 		line_timestamp = self.grab_time(line)
+		if not line_timestamp:
+			return False
 		delta = self.now - line_timestamp
 		if delta.seconds <= 60:
 			return True
@@ -91,7 +97,7 @@ class Initializer(object):
 			return False
 	
 	def get_log_lines(self):
-		"""Finding out exactly what lines of log should we parse"""
+		"""Find out exactly what lines of log should we parse"""
 		#open log file
 		try:
 			logfile = open(self.log, "r")
@@ -103,11 +109,13 @@ class Initializer(object):
 		self.position = logfile.tell()
 		if not lines:
 			self.save_position()
+			self.avg = -1
 		else:
 			if self.check_if_line_has_same_minute(lines[0]):
-				return self.parse(lines)
+				self.avg=self.parse(lines)
 			else:
 				#self.search_right_place()
+				self.avg = -1
 				self.go_to_the_end()
 				#self.get_log_lines()
 
