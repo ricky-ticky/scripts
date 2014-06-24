@@ -4,14 +4,16 @@ import re
 from datetime import datetime
 import pickle
 import sys
+import os
 
 #config
-log = "/var/log/nginx/invitro.ru.access.log"
+#log = "/var/log/nginx/invitro.ru.access.log"
+log = "/tmp/invitro.ru.access.log"
 mark = "/var/tmp/log_mark"
 
 
 class Initializer(object):
-	def __init__(self, log, pmark):
+	def __init__(self, log, mark):
 		self.log = log
 		self.mark = mark
 		self.position = 0
@@ -23,7 +25,7 @@ class Initializer(object):
 	
 	def run(self):
 		try:
-		#read last_state_mark
+			#read last_state_mark
 			markfile = open(self.mark, "r")
 			self.position = pickle.load(markfile)
 		except:
@@ -33,7 +35,7 @@ class Initializer(object):
 		self.save_position()
 	
 	def search_right_place(self):
-		"""Seaching for actual place in log file"""
+		"""Seach for actual place in log file"""
 		if self.full_scan:
 			#print "can't find current time in log"
 			sys.exit(1)
@@ -46,7 +48,7 @@ class Initializer(object):
 		while 1:
 			#read line, get timestamp, compare with current
 			line = logfile.readline()
-			if line:
+			if line: #TODO: check if a string a valid apache-format logline
 				if self.check_if_line_has_same_minute(line):
 					self.position = logfile.tell()
 					logfile.close()
@@ -59,6 +61,16 @@ class Initializer(object):
 		if not self.position:
 			#print "can't find current time in log"
 			sys.exit(1)
+	def go_to_the_end(self):
+		"""Go to the end of logfile"""
+		logfile = open(self.log,"r")
+		logfile.seek(-1,os.SEEK_END)
+		self.position = logfile.tell()
+		pass
+		
+	def search_from_markpoint(self):
+		"""Search for actual place in logfile from markpoint"""
+		pass
 	
 	def grab_time(self, line):
 		"""distinguish timestamp from log line"""
@@ -95,11 +107,12 @@ class Initializer(object):
 			if self.check_if_line_has_same_minute(lines[0]):
 				return self.parse(lines)
 			else:
-				self.search_right_place()
-				self.get_log_lines()
+				#self.search_right_place()
+				self.go_to_the_end()
+				#self.get_log_lines()
 
 	def parse(self, lines):
-		"""Returns average response time as float or False"""
+		"""Return average response time as float or False"""
 		regex = re.compile(r".* \[.*\] \".*\" (?P<http_code>\d*) \d* \".*\" \".*\" \[ [0-9\.]*:\d\d (?P<backend_resp_time>[0-9.]*) \] .* \".*\" cache:(?P<cache_hit>(-|HIT)) .*")
 		sum_resp_time = 0.0
 		mutch_counter = 0
@@ -132,3 +145,4 @@ if __name__=="__main__":
 	chewy.run()
 	print chewy.avg
 
+#TODO: more clever search - not from the beginning. Maybe just faster search from beginning.
