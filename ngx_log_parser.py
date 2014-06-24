@@ -7,8 +7,8 @@ import sys
 import os
 
 #config
-#log = "/var/log/nginx/invitro.ru.access.log"
-log = "/tmp/invitro.ru.access.log"
+log = "/var/log/nginx/invitro.ru.access.log"
+#log = "/tmp/invitro.ru.access.log"
 mark = "/var/tmp/log_mark"
 
 
